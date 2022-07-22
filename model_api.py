@@ -85,7 +85,7 @@ def load_model():
 
     model = TransformerTranslationModel(
         encoder_layers, decoder_layers, embedding_size, seq_length, heads, eng_vocab_size, gloss_vocab_size).to(device)
-    model.load_state_dict(torch.load('model_deep.pt'))
+    model.load_state_dict(torch.load('model_deep.pt', map_location=device))
 
     return model, dataset
 
