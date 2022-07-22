@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from eng2gloss_dataset import EnglishToGlossDataset
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 unknown_idx, padding_idx, bos_idx, eos_idx = 0, 1, 2, 3
 
 
@@ -79,13 +79,13 @@ def load_model():
     embedding_size = 512
     heads = 8
     seq_length = 512
-    batch_size = 40
     encoder_layers = 6
     decoder_layers = 6
 
     model = TransformerTranslationModel(
         encoder_layers, decoder_layers, embedding_size, seq_length, heads, eng_vocab_size, gloss_vocab_size).to(device)
     model.load_state_dict(torch.load('model_deep.pt', map_location=device))
+    model.eval()
 
     return model, dataset
 
@@ -118,13 +118,14 @@ def decode_greedy(model, eng, eng_mask, max_seq_len):
 
 
 def translate(model, dataset, eng_sentence):
-    eng = dataset.tensor_transform(dataset.vocab_transform_eng(
-        dataset.tokenizer(eng_sentence))).view(-1, 1)
-    tokens_size = eng.shape[0]
+    with torch.no_grad():
+        eng = dataset.tensor_transform(dataset.vocab_transform_eng(
+            dataset.tokenizer(eng_sentence))).view(-1, 1)
+        tokens_size = eng.shape[0]
 
-    eng_mask = (torch.zeros(tokens_size, tokens_size)).bool()
+        eng_mask = (torch.zeros(tokens_size, tokens_size)).bool()
 
-    gloss_tokens = decode_greedy(
-        model, eng, eng_mask, tokens_size + 5).flatten()
+        gloss_tokens = decode_greedy(
+            model, eng, eng_mask, tokens_size + 5).flatten()
 
-    return (" ".join(dataset.vocab_transform_gloss.lookup_tokens(list(gloss_tokens.cpu().numpy())))).replace('<bos> ', '').replace(' <eos>', '').upper()
+        return (" ".join(dataset.vocab_transform_gloss.lookup_tokens(list(gloss_tokens.cpu().numpy())))).replace('<bos> ', '').replace(' <eos>', '').upper()
