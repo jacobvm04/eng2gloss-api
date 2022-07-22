@@ -11,5 +11,4 @@ def translate(english_sentence: str = None):
         return {"error": "Required query parameter 'english_sentence' is missing"}
 
     gloss_translation = model_api.translate(model, dataset, english_sentence)
-
     return {"english_sentence": english_sentence, "gloss_translation": gloss_translation}

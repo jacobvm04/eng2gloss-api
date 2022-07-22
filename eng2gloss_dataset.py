@@ -3,11 +3,12 @@ import string
 import torchtext
 import pandas as pd
 
+
 def pre_process_text(text):
     sent = ""
     for word in text.split():
         use_word = word
-        if len(word) >= len("DESC") and word[:len("DESC")] == "DESC": 
+        if len(word) >= len("DESC") and word[:len("DESC")] == "DESC":
             use_word = word[len("DESC"):]
 
         if use_word[0] == "X":
@@ -19,8 +20,10 @@ def pre_process_text(text):
 
     return str(sent.translate(str.maketrans('', '', string.punctuation)).lower())[:-1]
 
+
 unknown_idx, padding_idx, bos_idx, eos_idx = 0, 1, 2, 3
 special_tokens = ['<unk>', '<pad>', '<bos>', '<eos>']
+
 
 class EnglishToGlossDataset(torch.utils.data.Dataset):
     @staticmethod
@@ -39,8 +42,10 @@ class EnglishToGlossDataset(torch.utils.data.Dataset):
             en_batch.append(en)
             gloss_batch.append(gloss)
 
-        en_batch = torch.nn.utils.rnn.pad_sequence(en_batch, padding_value=padding_idx)
-        gloss_batch = torch.nn.utils.rnn.pad_sequence(gloss_batch, padding_value=padding_idx)
+        en_batch = torch.nn.utils.rnn.pad_sequence(
+            en_batch, padding_value=padding_idx)
+        gloss_batch = torch.nn.utils.rnn.pad_sequence(
+            gloss_batch, padding_value=padding_idx)
 
         return en_batch, gloss_batch
 
@@ -82,7 +87,9 @@ class EnglishToGlossDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         item = self.df.iloc[idx]
 
-        en = self.tensor_transform(self.vocab_transform_eng(self.tokenizer(item['en'])))
-        gloss = self.tensor_transform(self.vocab_transform_gloss(self.tokenizer(item['gloss'])))
+        en = self.tensor_transform(
+            self.vocab_transform_eng(self.tokenizer(item['en'])))
+        gloss = self.tensor_transform(
+            self.vocab_transform_gloss(self.tokenizer(item['gloss'])))
 
         return en, gloss
